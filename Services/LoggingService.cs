@@ -15,6 +15,28 @@ namespace DBot.Services
         }
         public Task LogAsync(LogMessage message)
         {
+            switch (message.Severity)
+            {
+                case LogSeverity.Info:
+                    Console.ForegroundColor = ConsoleColor.DarkGray;
+                    break;
+                case LogSeverity.Debug:
+                    Console.ForegroundColor = ConsoleColor.DarkGray;
+                    break;
+                case LogSeverity.Verbose:
+                    Console.ForegroundColor = ConsoleColor.DarkGray;
+                    break;
+                case LogSeverity.Warning:
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    break;
+                case LogSeverity.Error:
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    break;
+                case LogSeverity.Critical:
+                    Console.ForegroundColor = ConsoleColor.DarkRed;
+                    break;
+            }
+
             if (message.Exception is CommandException cmdException)
             {
                 Console.WriteLine($"[Command/{message.Severity}] {cmdException.Command.Aliases[0]}"
@@ -22,7 +44,11 @@ namespace DBot.Services
                 Console.WriteLine(cmdException);
             }
             else
+            {
                 Console.WriteLine($"[General/{message.Severity}] {message}");
+            }
+
+            Console.ResetColor();
 
             return Task.CompletedTask;
         }

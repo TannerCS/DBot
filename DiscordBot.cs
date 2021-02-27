@@ -25,7 +25,7 @@ namespace DBot
             {
                 DefaultRetryMode = RetryMode.AlwaysRetry,
                 ExclusiveBulkDelete = true,
-                LogLevel = LogSeverity.Info
+                LogLevel = LogSeverity.Verbose
             });
 
             _CommandService = new CommandService();
