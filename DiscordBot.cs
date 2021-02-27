@@ -4,6 +4,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace DBot
 {
@@ -49,16 +50,16 @@ namespace DBot
             await Task.Delay(-1);
         }
 
-        private Task Ready()
+        private async Task Ready()
         {
+            var commandCount = _CommandService.Commands.Count();
+            await _Client.SetGameAsync($" for {commandCount} commands across {_Client.Guilds.Count} guilds.", null, ActivityType.Watching);
+
             foreach (var guild in _Client.Guilds)
             {
                 Database.InsertNewGuild(guild, _CommandService.Commands);
                 Database.UpdateGuildCommands(guild, _CommandService.Commands);
-                //_CommandService.GetExecutableCommandsAsync()
             }
-
-            return Task.CompletedTask;
         }
 
         public static int GetLatency()
