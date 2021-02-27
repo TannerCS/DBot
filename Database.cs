@@ -32,7 +32,9 @@ namespace DBot
 
             var parsedGuildData = BsonSerializer.Deserialize<GuildData>(guildData.ToString());
 
-            return parsedGuildData.commands[commandName.ToLower()];
+            if (!parsedGuildData.Commands.ContainsKey(commandName.ToLower())) return false;
+
+            return parsedGuildData.Commands[commandName.ToLower()];
         }
 
         public BsonDocument InsertNewGuild(IGuild guild, IEnumerable<CommandInfo> commandInfo)
@@ -61,9 +63,9 @@ namespace DBot
 
             foreach (var command in commandInfo)
             {
-                if (!parsedGuildData.commands.ContainsKey(command.Name.ToLower()))
+                if (!parsedGuildData.Commands.ContainsKey(command.Name.ToLower()))
                 {
-                    b.Add(command.Name.ToLower(), false);
+                    b.Add(command.Name.ToLower(), true);
                 }
             }
 
@@ -75,20 +77,27 @@ namespace DBot
         public void UpdateGuildCommand(IGuild guild, string command, bool enabled)
         {
             var parsedGuildData = GetGuildData(guild);
-            parsedGuildData.commands[command] = enabled;
+            parsedGuildData.Commands[command] = enabled;
 
             var set = Builders<BsonDocument>.Update.Set("commands", parsedGuildData.ToBsonDocument().GetElement("commands").Value);
 
             _GuildInformation.UpdateOne(Builders<BsonDocument>.Filter.Eq("guild_id", guild.Id.ToString()), set);
         }
 
-        private GuildData GetGuildData(IGuild guild)
+        public GuildData GetGuildData(IGuild guild)
         {
             var filter = Builders<BsonDocument>.Filter.Eq("guild_id", guild.Id.ToString());
             var guildData = _GuildInformation.Find(filter).FirstOrDefault();
             var parsedGuildData = BsonSerializer.Deserialize<GuildData>(guildData.ToString());
 
             return parsedGuildData;
+        }
+
+        public void ChangeGuildPrefix(IGuild guild, string prefix)
+        {
+            var set = Builders<BsonDocument>.Update.Set("prefix", prefix);
+
+            _GuildInformation.UpdateOne(Builders<BsonDocument>.Filter.Eq("guild_id", guild.Id.ToString()), set);
         }
     }
 }

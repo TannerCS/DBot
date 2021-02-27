@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using DBot.Services;
+﻿using DBot.Services;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace DBot
 {

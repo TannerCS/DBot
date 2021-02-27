@@ -4,14 +4,19 @@ using System.Collections.Generic;
 
 namespace DBot.Constants
 {
-    class GuildData
+    public class GuildData
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
+
         [BsonElement("guild_id")]
         public ulong guildID { get; set; }
+
         [BsonElement("commands")]
-        public Dictionary<string, bool> commands = new Dictionary<string, bool>();
+        public Dictionary<string, bool> Commands = new Dictionary<string, bool>();
+
+        [BsonElement("prefix")]
+        public string Prefix = "!";
     }
 }
