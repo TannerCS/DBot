@@ -40,7 +40,6 @@ namespace DBot
 
             await _Command.InstallCommandsAsync();
 
-            //TODO: Secure this
             var token = Config.Data.botToken;
 
             await _Client.LoginAsync(TokenType.Bot, token);

@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -39,16 +40,20 @@ namespace DBot
             var prefix = DiscordBot.Database.GetGuildData((message.Channel as SocketGuildChannel).Guild).Prefix;
 
             // Determine if the message is a command based on the prefix and make sure no bots trigger Commands
-            if (!(message.HasStringPrefix(prefix, ref argPos) || message.Author.IsBot))
+            if (!(message.HasStringPrefix(prefix, ref argPos)) || message.Author.IsBot)
                 return;
 
             // Create a WebSocket-based command context based on the message
             var context = new SocketCommandContext(_client, message);
 
-            //var command = context.Message.Content.TrimStart(prefix.ToCharArray()).Split(' ')[0]; // _Commands.Search(context, argPos).Commands.First().Command.Name;
-            //if (string.IsNullOrWhiteSpace(command)) return;
+            var command = _Commands.Search(context, argPos);
+            if (!command.IsSuccess) return;
 
-            if (!DiscordBot.Database.IsCommandEnabledForGuild(context.Guild, message.Content.Split(' ')[0].TrimStart(prefix.ToCharArray()))) return;
+            if (!DiscordBot.Database.IsCommandEnabledForGuild(context.Guild, command.Commands.FirstOrDefault().Command.Name))
+            {
+                await context.Channel.SendMessageAsync($"Command not enabled.");
+                return;
+            }
 
             // Execute the command with the command context we just
             // created, along with the service provider for precondition checks.

@@ -8,10 +8,14 @@ namespace DBot.Commands.General
     {
         [Command("toggle"),
          Summary("Toggle a command on and off.")]
-        public async Task ToggleCommandAsync([Required] string command, [Required] bool enabled)
+        public async Task ToggleCommandAsync([Required] string command)
         {
-            DiscordBot.Database.UpdateGuildCommand(Context.Guild, command, enabled);
-            await ReplyAsync($"Command `{command}` {(enabled ? "enabled" : "disabled")}");
+            var guildData = DiscordBot.Database.GetGuildData(Context.Guild);
+
+            if (!guildData.Commands.ContainsKey(command)) return;
+
+            DiscordBot.Database.UpdateGuildCommand(Context.Guild, command, !guildData.Commands[command]);
+            await ReplyAsync($"Command `{command}` {(guildData.Commands[command] ? "disabled" : "enabled")}");
         }
     }
 }
