@@ -10,7 +10,9 @@ namespace DBot.Commands.Development
     {
         [Command("ping"),
          Summary("Pings the bot.")]
-        public Task PingAsync()
-            => ReplyAsync($"Pong. `({DiscordBot.GetLatency()}ms)`");
+        public async Task PingAsync()
+        {
+            await ReplyAsync($"Pong. `({DiscordBot.GetLatency()}ms)`");
+        }
     }
 }

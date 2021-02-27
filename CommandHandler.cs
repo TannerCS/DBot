@@ -50,6 +50,9 @@ namespace DBot
 
             // Execute the command with the command context we just
             // created, along with the service provider for precondition checks.
+
+            if (!DiscordBot.Database.IsCommandEnabledForGuild(context.Guild, _commands.Search(context, argPos).Commands[0].Command.Name)) return;
+
             await _commands.ExecuteAsync(
                 context: context,
                 argPos: argPos,

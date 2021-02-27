@@ -14,8 +14,6 @@ namespace DBot.Services
 		}
 		private async Task MessageReceivedAsync(SocketMessage message)
 		{
-			
-			
 			await Task.CompletedTask;
 		}
 	}

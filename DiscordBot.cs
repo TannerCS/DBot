@@ -18,7 +18,6 @@ namespace DBot
         private static DiscordSocketClient _Client;
         private static CommandHandler _Command;
         private static CommandService _CommandService;
-        private static MessageService _MessageService;
         public async Task MainAsync()
         {
 
@@ -34,7 +33,7 @@ namespace DBot
 
             _Command = new CommandHandler(_Client, _CommandService);
             Logger = new LoggingService(_Client, _CommandService);
-            _MessageService = new MessageService(_Client);
+            new MessageService(_Client);
             Config = new Config();
             Database = new Database();
 
@@ -56,7 +55,9 @@ namespace DBot
         {
             foreach (var guild in _Client.Guilds)
             {
-                Database.InsertNewGuild(guild);
+                Database.InsertNewGuild(guild, _CommandService.Commands);
+                Database.UpdateGuildCommands(guild, _CommandService.Commands);
+                //_CommandService.GetExecutableCommandsAsync()
             }
 
             return Task.CompletedTask;
@@ -65,6 +66,11 @@ namespace DBot
         public static int GetLatency()
         {
             return _Client.Latency;
+        }
+
+        public static IEnumerable<CommandInfo> GetAllCommands()
+        {
+            return _CommandService.Commands;
         }
     }
 }
