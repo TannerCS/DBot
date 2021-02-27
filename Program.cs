@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-
-namespace DBot
+﻿namespace DBot
 {
     class Program
     {

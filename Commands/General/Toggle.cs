@@ -1,9 +1,5 @@
-﻿using Discord;
-using Discord.Commands;
-using System;
-using System.Collections.Generic;
+﻿using Discord.Commands;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace DBot.Commands.General
@@ -12,7 +8,7 @@ namespace DBot.Commands.General
     {
         [Command("toggle"),
          Summary("Toggle a command on and off.")]
-        public async Task ToggleCommandAsync([Required]string command, [Required]bool enabled)
+        public async Task ToggleCommandAsync([Required] string command, [Required] bool enabled)
         {
             DiscordBot.Database.UpdateGuildCommand(Context.Guild, command, enabled);
             await ReplyAsync($"Command `{command}` {(enabled ? "enabled" : "disabled")}");

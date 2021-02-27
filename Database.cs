@@ -1,21 +1,15 @@
 ﻿using DBot.Constants;
-using DBot.Services;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
-using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace DBot
 {
-    class Database
+    public class Database
     {
         private MongoClient _DBClient;
         private IMongoDatabase _Database;
@@ -65,7 +59,7 @@ namespace DBot
 
             var b = new BsonDocument();
 
-            foreach(var command in commandInfo)
+            foreach (var command in commandInfo)
             {
                 if (!parsedGuildData.commands.ContainsKey(command.Name.ToLower()))
                 {

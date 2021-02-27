@@ -1,15 +1,13 @@
-﻿using DBot.Services;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using DBot.Services;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DBot
 {
-    class DiscordBot
+    public class DiscordBot
     {
         public static Config Config;
         public static Database Database;
@@ -18,6 +16,7 @@ namespace DBot
         private static DiscordSocketClient _Client;
         private static CommandHandler _Command;
         private static CommandService _CommandService;
+
         public async Task MainAsync()
         {
 
@@ -25,8 +24,7 @@ namespace DBot
             {
                 DefaultRetryMode = RetryMode.AlwaysRetry,
                 ExclusiveBulkDelete = true,
-                LogLevel = LogSeverity.Verbose,
-                MaxWaitBetweenGuildAvailablesBeforeReady = 5
+                LogLevel = LogSeverity.Info
             });
 
             _CommandService = new CommandService();
