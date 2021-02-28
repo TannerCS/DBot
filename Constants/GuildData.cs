@@ -11,6 +11,7 @@ namespace DBot.Constants
         {
             guildID = guild.Id;
             Commands = commandArray;
+            Prefix = "!";
         }
 
         [BsonId]
@@ -24,6 +25,6 @@ namespace DBot.Constants
         public IList<CommandData> Commands { get; set; }
 
         [BsonElement("prefix")]
-        public string Prefix = "!";
+        public string Prefix { get; set; }
     }
 }

@@ -1,10 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using MongoDB.Bson.Serialization.Attributes;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace DBot.Constants
 {

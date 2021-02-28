@@ -1,8 +1,5 @@
 ﻿using Discord.Commands;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace DBot.Commands.General
@@ -11,7 +8,7 @@ namespace DBot.Commands.General
     {
         [Command("prefix"),
          Summary("Changes the prefix for the guild.")]
-        public async Task PrefixAsync([Required]string prefix)
+        public async Task PrefixAsync([Required] string prefix)
         {
             DiscordBot.Database.ChangeGuildPrefix(Context.Guild, prefix);
             await ReplyAsync($"Changed prefix to `{prefix}`");

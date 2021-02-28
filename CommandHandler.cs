@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 using System.Linq;
 using System.Reflection;
@@ -33,7 +34,7 @@ namespace DBot
         {
             // Don't process the command if it was a system message
             var message = messageParam as SocketUserMessage;
-            if (message == null) return;
+            if (message == null || message.Channel is IDMChannel) return;
 
             // Create a number to track where the prefix ends and the command begins
             int argPos = 0;
@@ -54,6 +55,9 @@ namespace DBot
                 await context.Channel.SendMessageAsync($"Command not enabled.");
                 return;
             }
+
+            if (!DiscordBot.Database.CanUserRunCommand(context.User as IGuildUser, command.Commands.FirstOrDefault().Command.Name))
+                return;
 
             // Execute the command with the command context we just
             // created, along with the service provider for precondition checks.

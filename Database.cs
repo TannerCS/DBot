@@ -1,11 +1,8 @@
 ﻿using DBot.Constants;
 using Discord;
-using Discord.Commands;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,6 +38,18 @@ namespace DBot
             return cmd.Enabled;
         }
 
+        public bool CanUserRunCommand(IGuildUser user, string command)
+        {
+            ulong[] roles = GetCommandRoles(command.ToLower(), user.Guild);
+
+            var roleCheck = user.RoleIds.Where(x => roles.Contains(x));
+
+            if (roleCheck.Any())
+                return true;
+            else
+                return false;
+        }
+
         public BsonDocument InsertNewGuild(IGuild guild)
         {
             var guildData = GetGuildData(guild);
@@ -64,7 +73,7 @@ namespace DBot
                 arr.Add(new CommandData(command, guild));
             }
 
-            return arr; 
+            return arr;
         }
 
         public void UpdateGuildCommands(IGuild guild)
@@ -103,12 +112,20 @@ namespace DBot
             var filter = Builders<BsonDocument>.Filter.Eq("guild_id", guild.Id.ToString());
             var guildData = _GuildInformation.Find(filter).FirstOrDefault();
 
-            if (guildData == null) 
+            if (guildData == null)
                 return null;
 
             var parsedGuildData = BsonSerializer.Deserialize<GuildData>(guildData);
 
             return parsedGuildData;
+        }
+
+        public ulong[] GetCommandRoles(string command, IGuild guild)
+        {
+            var guildData = GetGuildData(guild);
+            var cmd = guildData.Commands.FirstOrDefault(x => x.Name == command.ToLower());
+
+            return cmd.Roles;
         }
 
         public void ChangeGuildPrefix(IGuild guild, string prefix)
