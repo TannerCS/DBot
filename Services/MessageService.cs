@@ -1,4 +1,6 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
+using Discord.WebSocket;
+using System;
 using System.Threading.Tasks;
 
 namespace DBot.Services
@@ -8,7 +10,14 @@ namespace DBot.Services
         public MessageService(DiscordSocketClient client)
         {
             client.MessageReceived += MessageReceivedAsync;
+            client.MessageDeleted += MessageDeletedAsync;
         }
+
+        private async Task MessageDeletedAsync(Cacheable<IMessage, ulong> arg1, ISocketMessageChannel arg2)
+        {
+            await Task.CompletedTask;
+        }
+
         private async Task MessageReceivedAsync(SocketMessage message)
         {
             await Task.CompletedTask;

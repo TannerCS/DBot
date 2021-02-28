@@ -14,7 +14,7 @@ namespace DBot.Constants
         public ulong guildID { get; set; }
 
         [BsonElement("commands")]
-        public Dictionary<string, bool> Commands = new Dictionary<string, bool>();
+        public IList<CommandData> Commands { get; set; }
 
         [BsonElement("prefix")]
         public string Prefix = "!";

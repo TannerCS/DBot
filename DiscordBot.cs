@@ -13,10 +13,10 @@ namespace DBot
         public static Config Config;
         public static Database Database;
         public static LoggingService Logger;
+        public static CommandService CommandService;
 
         private static DiscordSocketClient _Client;
         private static CommandHandler _Command;
-        private static CommandService _CommandService;
 
         public async Task MainAsync()
         {
@@ -28,10 +28,10 @@ namespace DBot
                 LogLevel = LogSeverity.Verbose
             });
 
-            _CommandService = new CommandService();
+            CommandService = new CommandService();
 
-            _Command = new CommandHandler(_Client, _CommandService);
-            Logger = new LoggingService(_Client, _CommandService);
+            _Command = new CommandHandler(_Client, CommandService);
+            Logger = new LoggingService(_Client, CommandService);
             new MessageService(_Client);
             Config = new Config();
             Database = new Database();
@@ -51,13 +51,14 @@ namespace DBot
 
         private async Task Ready()
         {
-            var commandCount = _CommandService.Commands.Count();
+            var commandCount = CommandService.Commands.Count();
             await _Client.SetGameAsync($" for {commandCount} commands across {_Client.Guilds.Count} guilds.", null, ActivityType.Watching);
 
+            //Check that every guild is up-to-date with commands
             foreach (var guild in _Client.Guilds)
             {
-                Database.InsertNewGuild(guild, _CommandService.Commands);
-                Database.UpdateGuildCommands(guild, _CommandService.Commands);
+                Database.InsertNewGuild(guild);
+                Database.UpdateGuildCommands(guild);
             }
         }
 
@@ -68,7 +69,7 @@ namespace DBot
 
         public static IEnumerable<CommandInfo> GetAllCommands()
         {
-            return _CommandService.Commands;
+            return CommandService.Commands;
         }
     }
 }

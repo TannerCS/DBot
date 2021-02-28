@@ -4,6 +4,9 @@ using Discord.Commands;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -25,61 +28,76 @@ namespace DBot
 
         public bool IsCommandEnabledForGuild(IGuild guild, string commandName)
         {
-            var filter = Builders<BsonDocument>.Filter.Eq("guild_id", guild.Id.ToString());
-            var guildData = _GuildInformation.Find(filter).FirstOrDefault();
+            var guildData = GetGuildData(guild);
 
-            if (guildData == null) return false;
+            if (guildData == null)
+                return false;
 
-            var parsedGuildData = BsonSerializer.Deserialize<GuildData>(guildData.ToString());
+            var cmd = guildData.Commands.FirstOrDefault(x => x.Name == commandName);
 
-            if (!parsedGuildData.Commands.ContainsKey(commandName.ToLower())) return false;
+            if (cmd == null)
+                return false;
 
-            return parsedGuildData.Commands[commandName.ToLower()];
+            return cmd.Enabled;
         }
 
-        public BsonDocument InsertNewGuild(IGuild guild, IEnumerable<CommandInfo> commandInfo)
+        public BsonDocument InsertNewGuild(IGuild guild)
         {
-            var filter = Builders<BsonDocument>.Filter.Eq("guild_id", guild.Id.ToString());
-            var guildData = _GuildInformation.Find(filter).FirstOrDefault();
+            var guildData = GetGuildData(guild);
+
+            var commandArray = GenerateCommands(guild);
 
             var doc = new BsonDocument {
                 { "guild_id", guild.Id.ToString() },
-                { "commands", new BsonDocument() }
+                { "commands", commandArray},
+                { "prefix", "!" }
             };
 
             if (guildData == null)
-            {
                 _GuildInformation.InsertOne(doc);
-            }
 
             return doc;
         }
 
-        public void UpdateGuildCommands(IGuild guild, IEnumerable<CommandInfo> commandInfo)
+        private BsonArray GenerateCommands(IGuild guild)
         {
-            var parsedGuildData = GetGuildData(guild);
+            BsonArray arr = new BsonArray();
 
-            var b = new BsonDocument();
-
-            foreach (var command in commandInfo)
+            foreach (var command in DiscordBot.CommandService.Commands)
             {
-                if (!parsedGuildData.Commands.ContainsKey(command.Name.ToLower()))
-                {
-                    b.Add(command.Name.ToLower(), true);
-                }
+                arr.Add(new CommandData(command, guild).ToBsonDocument());
             }
 
-            var set = Builders<BsonDocument>.Update.Set("commands", parsedGuildData.ToBsonDocument().GetElement("commands").Value.ToBsonDocument().AddRange(b));
+            return arr; 
+        }
 
+        public void UpdateGuildCommands(IGuild guild)
+        {
+            var guildData = GetGuildData(guild);
+
+            var oldCommands = guildData.Commands;
+
+            foreach (var command in DiscordBot.CommandService.Commands)
+            {
+                if (guildData.Commands.FirstOrDefault(x => x.Name == command.Name) == null)
+                    guildData.Commands.Add(new CommandData(command, guild));
+            }
+
+            var set = Builders<BsonDocument>.Update.Set("commands", guildData.Commands);
             _GuildInformation.UpdateOne(Builders<BsonDocument>.Filter.Eq("guild_id", guild.Id.ToString()), set);
         }
 
-        public void UpdateGuildCommand(IGuild guild, string command, bool enabled)
+        public void UpdateGuildCommand(IGuild guild, CommandData command)
         {
-            var parsedGuildData = GetGuildData(guild);
-            parsedGuildData.Commands[command] = enabled;
+            var guildData = GetGuildData(guild);
+            var cmd = guildData.Commands.FirstOrDefault(x => x.Name == command.Name);
 
-            var set = Builders<BsonDocument>.Update.Set("commands", parsedGuildData.ToBsonDocument().GetElement("commands").Value);
+            if (cmd == null) return;
+
+            guildData.Commands.Remove(cmd);
+            guildData.Commands.Add(command);
+
+            var set = Builders<BsonDocument>.Update.Set("commands", guildData.Commands);
 
             _GuildInformation.UpdateOne(Builders<BsonDocument>.Filter.Eq("guild_id", guild.Id.ToString()), set);
         }
@@ -88,7 +106,11 @@ namespace DBot
         {
             var filter = Builders<BsonDocument>.Filter.Eq("guild_id", guild.Id.ToString());
             var guildData = _GuildInformation.Find(filter).FirstOrDefault();
-            var parsedGuildData = BsonSerializer.Deserialize<GuildData>(guildData.ToString());
+
+            if (guildData == null) 
+                return null;
+
+            var parsedGuildData = BsonSerializer.Deserialize<GuildData>(guildData);
 
             return parsedGuildData;
         }

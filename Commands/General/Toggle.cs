@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace DBot.Commands.General
@@ -8,14 +9,22 @@ namespace DBot.Commands.General
     {
         [Command("toggle"),
          Summary("Toggle a command on and off.")]
+        [RequireUserPermission(Discord.GuildPermission.Administrator)]
         public async Task ToggleCommandAsync([Required] string command)
         {
             var guildData = DiscordBot.Database.GetGuildData(Context.Guild);
+            var cmd = guildData.Commands.FirstOrDefault(x => x.Name == command);
 
-            if (!guildData.Commands.ContainsKey(command)) return;
+            if (cmd == null)
+            {
+                await ReplyAsync("Command not found");
+                return;
+            }
 
-            DiscordBot.Database.UpdateGuildCommand(Context.Guild, command, !guildData.Commands[command]);
-            await ReplyAsync($"Command `{command}` {(guildData.Commands[command] ? "disabled" : "enabled")}");
+            cmd.Enabled = !cmd.Enabled;
+            DiscordBot.Database.UpdateGuildCommand(Context.Guild, cmd);
+
+            await ReplyAsync($"Command `{command}` {(cmd.Enabled ? "enabled" : "disabled")}");
         }
     }
 }
