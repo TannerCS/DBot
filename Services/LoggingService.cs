@@ -18,11 +18,7 @@ namespace DBot.Services
             switch (message.Severity)
             {
                 case LogSeverity.Info:
-                    Console.ForegroundColor = ConsoleColor.DarkGray;
-                    break;
                 case LogSeverity.Debug:
-                    Console.ForegroundColor = ConsoleColor.DarkGray;
-                    break;
                 case LogSeverity.Verbose:
                     Console.ForegroundColor = ConsoleColor.DarkGray;
                     break;

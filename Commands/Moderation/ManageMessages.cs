@@ -7,7 +7,7 @@ namespace DBot.Commands.Moderation
     public class ManageMessages : ModuleBase<SocketCommandContext>
     {
         [Command("delete"),
-         Summary("Deletes the specified message.")]
+         Summary("Deletes the specified message. Usage: <prefix>delete <messageID:message reply>")]
         [RequireBotPermission(Discord.ChannelPermission.ManageMessages)]
         [RequireUserPermission(Discord.ChannelPermission.ManageMessages)]
         public async Task DeleteMessageAsync([Optional] ulong messageID)

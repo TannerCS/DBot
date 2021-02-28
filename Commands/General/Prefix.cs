@@ -7,7 +7,7 @@ namespace DBot.Commands.General
     public class Prefix : ModuleBase<SocketCommandContext>
     {
         [Command("prefix"),
-         Summary("Changes the prefix for the guild.")]
+         Summary("Changes the prefix for the guild. Usage: <prefix>prefix <prefix>")]
         public async Task PrefixAsync([Required] string prefix)
         {
             DiscordBot.Database.ChangeGuildPrefix(Context.Guild, prefix);

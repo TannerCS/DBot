@@ -8,7 +8,7 @@ namespace DBot.Commands.Development
     public class Toggle : ModuleBase<SocketCommandContext>
     {
         [Command("toggle"),
-         Summary("Toggle a command on and off.")]
+         Summary("Toggle a command on and off. Usage: <prefix>toggle <command>")]
         public async Task ToggleCommandAsync([Required] string command)
         {
             var guildData = DiscordBot.Database.GetGuildData(Context.Guild);

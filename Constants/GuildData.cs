@@ -9,17 +9,17 @@ namespace DBot.Constants
     {
         public GuildData(IGuild guild, List<CommandData> commandArray)
         {
-            guildID = guild.Id;
+            Id = ObjectId.GenerateNewId();
+            guildID = guild.Id.ToString();
             Commands = commandArray;
             Prefix = "!";
         }
 
         [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
+        public ObjectId Id { get; set; }
 
         [BsonElement("guild_id")]
-        public ulong guildID { get; set; }
+        public string guildID { get; set; }
 
         [BsonElement("commands")]
         public IList<CommandData> Commands { get; set; }

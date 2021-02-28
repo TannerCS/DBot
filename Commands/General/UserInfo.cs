@@ -8,7 +8,7 @@ namespace DBot.Commands.General
     public class UserInfo : ModuleBase<SocketCommandContext>
     {
         [Command("userinfo")]
-        [Summary("Returns info about the current user, or the user parameter, if one passed.")]
+        [Summary("Returns information about specified user. Usage: <prefix> <(Optional)user:userid)>")]
         [Alias("user", "whois")]
         public async Task UserInfoAsync([Summary("The (optional) user to get info from")] SocketUser user = null)
         {

@@ -6,7 +6,7 @@ namespace DBot.Commands.Development
     public class Ping : ModuleBase<SocketCommandContext>
     {
         [Command("ping"),
-         Summary("Pings the bot.")]
+         Summary("Pings the bot. Usage: <prefix>ping")]
         public async Task PingAsync()
         {
             await ReplyAsync($"Pong. `({DiscordBot.GetLatency()}ms)`");
