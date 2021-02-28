@@ -47,11 +47,7 @@ namespace DBot
 
             var commandArray = GenerateCommands(guild);
 
-            var doc = new BsonDocument {
-                { "guild_id", guild.Id.ToString() },
-                { "commands", commandArray},
-                { "prefix", "!" }
-            };
+            var doc = new GuildData(guild, commandArray).ToBsonDocument();
 
             if (guildData == null)
                 _GuildInformation.InsertOne(doc);
@@ -59,13 +55,13 @@ namespace DBot
             return doc;
         }
 
-        private BsonArray GenerateCommands(IGuild guild)
+        private List<CommandData> GenerateCommands(IGuild guild)
         {
-            BsonArray arr = new BsonArray();
+            List<CommandData> arr = new List<CommandData>();
 
             foreach (var command in DiscordBot.CommandService.Commands)
             {
-                arr.Add(new CommandData(command, guild).ToBsonDocument());
+                arr.Add(new CommandData(command, guild));
             }
 
             return arr; 
