@@ -50,12 +50,14 @@ namespace DBot
             var command = _Commands.Search(context, argPos);
             if (!command.IsSuccess) return;
 
+            // Check if command is enabled for the guild
             if (!DiscordBot.Database.IsCommandEnabledForGuild(context.Guild, command.Commands.FirstOrDefault().Command.Name))
             {
                 await context.Channel.SendMessageAsync($"Command not enabled.");
                 return;
             }
 
+            // Check if user can actually run the command
             if (!DiscordBot.Database.CanUserRunCommand(context.User as IGuildUser, command.Commands.FirstOrDefault().Command.Name))
                 return;
 

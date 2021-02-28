@@ -3,13 +3,12 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace DBot.Commands.General
+namespace DBot.Commands.Development
 {
     public class Toggle : ModuleBase<SocketCommandContext>
     {
         [Command("toggle"),
          Summary("Toggle a command on and off.")]
-        [RequireUserPermission(Discord.GuildPermission.Administrator)]
         public async Task ToggleCommandAsync([Required] string command)
         {
             var guildData = DiscordBot.Database.GetGuildData(Context.Guild);
