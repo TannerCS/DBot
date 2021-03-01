@@ -48,5 +48,10 @@ namespace DBot.Services
 
             return Task.CompletedTask;
         }
+
+        public void Log(LogMessage message)
+        {
+            LogAsync(message);
+        }
     }
 }
