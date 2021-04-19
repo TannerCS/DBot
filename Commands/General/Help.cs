@@ -10,6 +10,8 @@ namespace DBot.Commands.General
         [Summary("Displays help info about commands. Usage: <prefix>help")]
         public async Task HelpCommand()
         {
+            if (Context.Channel is IDMChannel) return;
+
             var commands = DiscordBot.CommandService.Commands;
             var embed = new EmbedBuilder();
 

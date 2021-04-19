@@ -10,6 +10,8 @@ namespace DBot.Commands.General
          Summary("Changes the prefix for the guild. Usage: <prefix>prefix <prefix>")]
         public async Task PrefixAsync([Required] string prefix)
         {
+            if (Context.Channel is IDMChannel) return;
+
             DiscordBot.Database.ChangeGuildPrefix(Context.Guild, prefix);
             await ReplyAsync($"Changed prefix to `{prefix}`");
         }

@@ -11,8 +11,11 @@ namespace DBot.Constants
         {
             Id = ObjectId.GenerateNewId();
             guildID = guild.Id.ToString();
+            ownerID = guild.OwnerId.ToString();
             Commands = commandArray;
             Prefix = "!";
+            v = 0;
+            Analytics = Database.GenerateAnalytics(guild);
         }
 
         [BsonId]
@@ -20,11 +23,19 @@ namespace DBot.Constants
 
         [BsonElement("guild_id")]
         public string guildID { get; set; }
+        [BsonElement("owner_id")]
+        public string ownerID { get; set; }
 
         [BsonElement("commands")]
         public IList<CommandData> Commands { get; set; }
 
         [BsonElement("prefix")]
         public string Prefix { get; set; }
+
+        [BsonElement("analytics")]
+        public AnalyticData Analytics { get; set; }
+
+        [BsonElement("__v")]
+        public int v { get; set; }
     }
 }

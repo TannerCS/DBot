@@ -12,6 +12,8 @@ namespace DBot.Commands.Moderation
         [RequireUserPermission(Discord.ChannelPermission.ManageMessages)]
         public async Task DeleteMessageAsync([Optional] ulong messageID)
         {
+            if (Context.Channel is IDMChannel) return;
+
             var referencedMessage = Context.Message.ReferencedMessage ?? (messageID != 0 ? await Context.Channel.GetMessageAsync(messageID) : null);
             if (referencedMessage == null)
             {

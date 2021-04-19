@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,8 +10,11 @@ namespace DBot.Commands.Development
     {
         [Command("toggle"),
          Summary("Toggle a command on and off. Usage: <prefix>toggle <command>")]
+        [RequireUserPermission(Discord.GuildPermission.Administrator)]
         public async Task ToggleCommandAsync([Required] string command)
         {
+            if (Context.Channel is IDMChannel) return;
+
             var guildData = DiscordBot.Database.GetGuildData(Context.Guild);
             var cmd = guildData.Commands.FirstOrDefault(x => x.Name == command);
 

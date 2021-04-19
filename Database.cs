@@ -1,11 +1,13 @@
 ﻿using DBot.Constants;
 using Discord;
+using Discord.WebSocket;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace DBot
 {
@@ -14,6 +16,7 @@ namespace DBot
         private MongoClient _DBClient;
         private IMongoDatabase _Database;
         private IMongoCollection<BsonDocument> _GuildInformation;
+        private DateTime _LastMemberUpdate = DateTime.Now;
 
         public Database()
         {
@@ -64,6 +67,12 @@ namespace DBot
             return doc;
         }
 
+        public void RemoveGuildData(IGuild guild)
+        {
+            var guildData = Builders<BsonDocument>.Filter.Eq("guild_id", guild.Id.ToString());
+            _GuildInformation.DeleteOne(guildData);
+        }
+
         private List<CommandData> GenerateCommands(IGuild guild)
         {
             List<CommandData> arr = new List<CommandData>();
@@ -76,7 +85,71 @@ namespace DBot
             return arr;
         }
 
-        public void UpdateGuildCommands(IGuild guild)
+        public static AnalyticData GenerateAnalytics(IGuild guild)
+        {
+            return new AnalyticData(guild)
+            {
+                InvitesCreated = new List<AnalyticData.Analytic> { new AnalyticData.Analytic()
+                {
+                    Count = 0,
+                    Timestamp = DateTime.Now.Ticks
+                } },
+                InvitesDeleted = new List<AnalyticData.Analytic> { new AnalyticData.Analytic()
+                {
+                    Count = 0,
+                    Timestamp = DateTime.Now.Ticks
+                } },
+                MessagesDeleted = new List<AnalyticData.Analytic> { new AnalyticData.Analytic()
+                {
+                    Count = 0,
+                    Timestamp = DateTime.Now.Ticks
+                } },
+                MessagesReceived = new List<AnalyticData.Analytic> { new AnalyticData.Analytic()
+                {
+                    Count = 0,
+                    Timestamp = DateTime.Now.Ticks
+                } },
+                UsersBanned = new List<AnalyticData.Analytic> { new AnalyticData.Analytic()
+                {
+                    Count = 0,
+                    Timestamp = DateTime.Now.Ticks
+                } },
+                UsersJoined = new List<AnalyticData.Analytic> { new AnalyticData.Analytic()
+                {
+                    Count = 0,
+                    Timestamp = DateTime.Now.Ticks
+                } },
+                UsersLeft = new List<AnalyticData.Analytic> { new AnalyticData.Analytic()
+                {
+                    Count = 0,
+                    Timestamp = DateTime.Now.Ticks
+                } },
+                UsersUnbanned = new List<AnalyticData.Analytic> { new AnalyticData.Analytic()
+                {
+                    Count = 0,
+                    Timestamp = DateTime.Now.Ticks
+                } }
+            };
+        }
+
+        public GuildData UpdateAnalytics(AnalyticData data, IGuild guild)
+        {
+            var guildData = GetGuildData(guild);
+            
+            guildData.Analytics = data;
+
+            if(DateTime.Now.Subtract(_LastMemberUpdate).TotalMinutes > 9)
+            {
+                guildData.Analytics.ApproximateMemberCount = (guild as SocketGuild).DownloadedMemberCount;
+                _LastMemberUpdate = DateTime.Now;
+            }
+
+            var set = Builders<BsonDocument>.Update.Set("analytics", guildData.Analytics);
+            _GuildInformation.UpdateOne(Builders<BsonDocument>.Filter.Eq("guild_id", guild.Id.ToString()), set);
+            return guildData;
+        }
+
+        public async Task UpdateGuildCommands(IGuild guild)
         {
             var guildData = GetGuildData(guild);
 
@@ -87,6 +160,9 @@ namespace DBot
                 if (guildData.Commands.FirstOrDefault(x => x.Name == command.Name) == null)
                     guildData.Commands.Add(new CommandData(command, guild));
             }
+
+            guildData.Commands = guildData.Commands.OrderBy(x => x.Name).ToList();
+            
 
             var set = Builders<BsonDocument>.Update.Set("commands", guildData.Commands);
             _GuildInformation.UpdateOne(Builders<BsonDocument>.Filter.Eq("guild_id", guild.Id.ToString()), set);
@@ -101,6 +177,8 @@ namespace DBot
 
             guildData.Commands.Remove(cmd);
             guildData.Commands.Add(command);
+
+            guildData.Commands = guildData.Commands.OrderBy(x => x.Name).ToList();
 
             var set = Builders<BsonDocument>.Update.Set("commands", guildData.Commands);
 
