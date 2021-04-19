@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
@@ -9,6 +10,7 @@ namespace DBot.Commands.Moderation
         [Command("delete"),
          Summary("Deletes the specified message. Usage: <prefix>delete <messageID:message reply>")]
         [RequireBotPermission(Discord.ChannelPermission.ManageMessages)]
+        [RequireBotPermission(GuildPermission.SendMessages)]
         [RequireUserPermission(Discord.ChannelPermission.ManageMessages)]
         public async Task DeleteMessageAsync([Optional] ulong messageID)
         {

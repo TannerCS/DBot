@@ -10,6 +10,7 @@ namespace DBot.Commands.Gaming
     {
         [Command("server")]
         [Summary("Displays information about a specific Steam server. Usage: <prefix>server <ip:port>")]
+        [RequireBotPermission(GuildPermission.SendMessages)]
         public async Task SteamCommand(string ip)
         {
             var splitIP = ip.Split(':');

@@ -8,6 +8,7 @@ namespace DBot.Commands.General
     {
         [Command("help")]
         [Summary("Displays help info about commands. Usage: <prefix>help")]
+        [RequireBotPermission(GuildPermission.SendMessages)]
         public async Task HelpCommand()
         {
             if (Context.Channel is IDMChannel) return;

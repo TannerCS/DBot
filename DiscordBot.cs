@@ -42,14 +42,14 @@ namespace DBot
             _Client.LeftGuild += LeftGuild;
             _Client.MessageReceived += MessageReceived;
             _Client.MessageDeleted += MessageDeleted;
+            _Client.UserBanned += UserBanned;
+            _Client.UserJoined += UserJoined;
+            _Client.UserLeft += UserLeft;
+            _Client.UserUnbanned += UserUnbanned;
             //_Client.InviteCreated += InviteCreated;
             //_Client.InviteDeleted += InviteDeleted;
             //_Client.LatencyUpdated += LatencyUpdated;
             //_Client.MessagesBulkDeleted += MessageBulkDeleted;
-            //_Client.UserBanned += UserBanned;
-            _Client.UserJoined += UserJoined;
-            _Client.UserLeft += UserLeft;
-            //_Client.UserUnbanned += UserUnbanned;
 
 
             await _Command.InstallCommandsAsync();
@@ -61,6 +61,46 @@ namespace DBot
 
             // Block this task until the program is closed.
             await Task.Delay(-1);
+        }
+
+        private async Task UserUnbanned(SocketUser arg1, SocketGuild arg2)
+        {
+            var guild = arg2;
+
+            var guildData = Database.GetGuildData(guild);
+
+            if (guildData.Analytics.UsersBanned.Count < 1)
+                guildData.Analytics.UsersBanned.Add(new Constants.AnalyticData.Analytic() { Count = 0, Timestamp = DateTime.Now.Ticks });
+
+            var messageReceivedAnalytic = guildData.Analytics.UsersBanned.Last();
+
+            if (DateTime.Now.Subtract(new DateTime(messageReceivedAnalytic.Timestamp)).TotalHours > 24)
+                guildData.Analytics.UsersBanned.Add(new Constants.AnalyticData.Analytic() { Count = 0, Timestamp = DateTime.Now.Ticks });
+
+            messageReceivedAnalytic.Count++;
+            guildData.Analytics.UsersBanned[guildData.Analytics.UsersBanned.Count - 1] = messageReceivedAnalytic;
+
+            Database.UpdateAnalytics(guildData.Analytics, guild);
+        }
+
+        private async Task UserBanned(SocketUser arg1, SocketGuild arg2)
+        {
+            var guild = arg2;
+
+            var guildData = Database.GetGuildData(guild);
+
+            if (guildData.Analytics.UsersBanned.Count < 1)
+                guildData.Analytics.UsersBanned.Add(new Constants.AnalyticData.Analytic() { Count = 0, Timestamp = DateTime.Now.Ticks });
+
+            var messageReceivedAnalytic = guildData.Analytics.UsersBanned.Last();
+
+            if (DateTime.Now.Subtract(new DateTime(messageReceivedAnalytic.Timestamp)).TotalHours > 24)
+                guildData.Analytics.UsersBanned.Add(new Constants.AnalyticData.Analytic() { Count = 0, Timestamp = DateTime.Now.Ticks });
+
+            messageReceivedAnalytic.Count++;
+            guildData.Analytics.UsersBanned[guildData.Analytics.UsersBanned.Count - 1] = messageReceivedAnalytic;
+
+            Database.UpdateAnalytics(guildData.Analytics, guild);
         }
 
         private async Task UserLeft(SocketGuildUser arg)

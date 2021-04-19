@@ -10,6 +10,7 @@ namespace DBot.Commands.General
         [Command("userinfo")]
         [Summary("Returns information about specified user. Usage: <prefix>userinfo <(Optional)user:userid)>")]
         [Alias("user", "whois")]
+        [RequireBotPermission(GuildPermission.SendMessages)]
         public async Task UserInfoAsync([Summary("The (optional) user to get info from")] SocketUser user = null)
         {
             var embed = new EmbedBuilder();

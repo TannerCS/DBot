@@ -13,6 +13,7 @@ namespace DBot.Commands.Moderation
          Summary("Kicks specified user. Usage: <prefix>kick <user:userid> \"(optional)reason\"")]
         [RequireBotPermission(GuildPermission.KickMembers)]
         [RequireUserPermission(GuildPermission.KickMembers)]
+        [RequireBotPermission(GuildPermission.SendMessages)]
         public async Task KickUserAsync([Required] SocketUser user, string reason = "")
         {
             if (Context.Channel is IDMChannel) return;
@@ -26,6 +27,7 @@ namespace DBot.Commands.Moderation
          Summary("Bans specified user. Usage: <prefix>ban <user:userid> \"(optional)reason\"")]
         [RequireUserPermission(GuildPermission.BanMembers)]
         [RequireBotPermission(GuildPermission.BanMembers)]
+        [RequireBotPermission(GuildPermission.SendMessages)]
         public async Task BanUserAsync([Required] SocketUser user, string reason = "")
         {
             if (Context.Channel is IDMChannel) return;
@@ -39,6 +41,7 @@ namespace DBot.Commands.Moderation
          Summary("Mutes specified user. Usage: <prefix>mute <user:userid> \"(optional)reason\"")]
         [RequireUserPermission(GuildPermission.ManageRoles)]
         [RequireBotPermission(ChannelPermission.ManageRoles)]
+        [RequireBotPermission(GuildPermission.SendMessages)]
         public async Task MuteUserAsync([Required] SocketUser user, string reason = "")
         {
             if (Context.Channel is IDMChannel) return;
@@ -60,6 +63,7 @@ namespace DBot.Commands.Moderation
          Summary("Unmutes specified user. Usage: <prefix>unmute <user:userid>")]
         [RequireUserPermission(GuildPermission.ManageRoles)]
         [RequireBotPermission(ChannelPermission.ManageRoles)]
+        [RequireBotPermission(GuildPermission.SendMessages)]
         public async Task UnMuteUserAsync([Required] SocketUser user)
         {
             if (Context.Channel is IDMChannel) return;

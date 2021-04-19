@@ -11,6 +11,7 @@ namespace DBot.Commands.Development
         [Command("toggle"),
          Summary("Toggle a command on and off. Usage: <prefix>toggle <command>")]
         [RequireUserPermission(Discord.GuildPermission.Administrator)]
+        [RequireBotPermission(GuildPermission.SendMessages)]
         public async Task ToggleCommandAsync([Required] string command)
         {
             if (Context.Channel is IDMChannel) return;
