@@ -1,10 +1,12 @@
-﻿using DBot.Services;
+﻿using DBot.Constants;
+using DBot.Services;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DBot
@@ -25,7 +27,6 @@ namespace DBot
             _Client = new DiscordSocketClient(new DiscordSocketConfig()
             {
                 DefaultRetryMode = RetryMode.AlwaysRetry,
-                ExclusiveBulkDelete = true,
                 LogLevel = LogSeverity.Verbose
             });
 
@@ -46,10 +47,9 @@ namespace DBot
             _Client.UserJoined += UserJoined;
             _Client.UserLeft += UserLeft;
             _Client.UserUnbanned += UserUnbanned;
-            //_Client.InviteCreated += InviteCreated;
-            //_Client.InviteDeleted += InviteDeleted;
+            _Client.InviteCreated += InviteCreated;
+            _Client.InviteDeleted += InviteDeleted;
             //_Client.LatencyUpdated += LatencyUpdated;
-            //_Client.MessagesBulkDeleted += MessageBulkDeleted;
 
 
             await _Command.InstallCommandsAsync();
@@ -63,125 +63,133 @@ namespace DBot
             await Task.Delay(-1);
         }
 
+        private async Task InviteDeleted(SocketGuildChannel arg1, string arg2)
+        {
+            var guildData = Database.GetGuildData(arg1.Guild);
+
+            if (guildData.Analytics.InvitesDeleted.Count < 1)
+                guildData.Analytics.InvitesDeleted.Add(new AnalyticData.Analytic());
+
+            //Get unix timestamp analytic
+            var inviteDeleted = guildData.Analytics.InvitesDeleted.Last();
+
+            inviteDeleted.Count++;
+            guildData.Analytics.InvitesDeleted[guildData.Analytics.UsersBanned.Count - 1] = inviteDeleted;
+
+            Database.UpdateAnalytics(guildData.Analytics, arg1.Guild);
+        }
+
+        private async Task InviteCreated(SocketInvite arg)
+        {
+            var guildData = Database.GetGuildData(arg.Guild);
+
+            if (guildData.Analytics.InvitesCreated.Count < 1)
+                guildData.Analytics.InvitesCreated.Add(new AnalyticData.Analytic());
+
+            //Get unix timestamp analytic
+            var inviteCreated = guildData.Analytics.InvitesCreated.Last();
+
+            inviteCreated.Count++;
+            guildData.Analytics.InvitesCreated[guildData.Analytics.UsersBanned.Count - 1] = inviteCreated;
+
+            Database.UpdateAnalytics(guildData.Analytics, arg.Guild);
+        }
+
         private async Task UserUnbanned(SocketUser arg1, SocketGuild arg2)
         {
-            var guild = arg2;
+            var guildData = Database.GetGuildData(arg2);
 
-            var guildData = Database.GetGuildData(guild);
+            if (guildData.Analytics.UsersUnbanned.Count < 1)
+                guildData.Analytics.UsersUnbanned.Add(new AnalyticData.Analytic());
 
-            if (guildData.Analytics.UsersBanned.Count < 1)
-                guildData.Analytics.UsersBanned.Add(new Constants.AnalyticData.Analytic() { Count = 0, Timestamp = DateTime.Now.Ticks });
+            //Get unix timestamp analytic
+            var userUnbanned = guildData.Analytics.UsersUnbanned.Last();
 
-            var messageReceivedAnalytic = guildData.Analytics.UsersBanned.Last();
+            userUnbanned.Count++;
+            guildData.Analytics.UsersUnbanned[guildData.Analytics.UsersUnbanned.Count - 1] = userUnbanned;
 
-            if (DateTime.Now.Subtract(new DateTime(messageReceivedAnalytic.Timestamp)).TotalHours > 24)
-                guildData.Analytics.UsersBanned.Add(new Constants.AnalyticData.Analytic() { Count = 0, Timestamp = DateTime.Now.Ticks });
-
-            messageReceivedAnalytic.Count++;
-            guildData.Analytics.UsersBanned[guildData.Analytics.UsersBanned.Count - 1] = messageReceivedAnalytic;
-
-            Database.UpdateAnalytics(guildData.Analytics, guild);
+            Database.UpdateAnalytics(guildData.Analytics, arg2);
         }
 
         private async Task UserBanned(SocketUser arg1, SocketGuild arg2)
         {
-            var guild = arg2;
+            var guildData = Database.GetGuildData(arg2);
 
-            var guildData = Database.GetGuildData(guild);
+            if (guildData.Analytics.UsersBanned.Count < 1) guildData.Analytics.UsersBanned.Add(new Constants.AnalyticData.Analytic());
 
-            if (guildData.Analytics.UsersBanned.Count < 1)
-                guildData.Analytics.UsersBanned.Add(new Constants.AnalyticData.Analytic() { Count = 0, Timestamp = DateTime.Now.Ticks });
+            //Get unix timestamp analytic
+            var userBannedAnalytic = guildData.Analytics.UsersBanned.Last();
 
-            var messageReceivedAnalytic = guildData.Analytics.UsersBanned.Last();
+            userBannedAnalytic.Count++;
+            guildData.Analytics.UsersBanned[guildData.Analytics.UsersBanned.Count - 1] = userBannedAnalytic;
 
-            if (DateTime.Now.Subtract(new DateTime(messageReceivedAnalytic.Timestamp)).TotalHours > 24)
-                guildData.Analytics.UsersBanned.Add(new Constants.AnalyticData.Analytic() { Count = 0, Timestamp = DateTime.Now.Ticks });
-
-            messageReceivedAnalytic.Count++;
-            guildData.Analytics.UsersBanned[guildData.Analytics.UsersBanned.Count - 1] = messageReceivedAnalytic;
-
-            Database.UpdateAnalytics(guildData.Analytics, guild);
+            Database.UpdateAnalytics(guildData.Analytics, arg2);
         }
 
         private async Task UserLeft(SocketGuildUser arg)
         {
-            var guild = arg.Guild;
+            var guildData = Database.GetGuildData(arg.Guild);
 
-            var guildData = Database.GetGuildData(guild);
+            if (guildData.Analytics.UsersLeft.Count < 1) guildData.Analytics.UsersLeft.Add(new AnalyticData.Analytic());
 
-            if (guildData.Analytics.UsersLeft.Count < 1)
-                guildData.Analytics.UsersLeft.Add(new Constants.AnalyticData.Analytic() { Count = 0, Timestamp = DateTime.Now.Ticks });
+            //Get unix timestamp analytic
+            var userLeftAnalytic = guildData.Analytics.UsersLeft.Last();
 
-            var messageReceivedAnalytic = guildData.Analytics.UsersJoined.Last();
-
-            if (DateTime.Now.Subtract(new DateTime(messageReceivedAnalytic.Timestamp)).TotalHours > 24)
-                guildData.Analytics.UsersLeft.Add(new Constants.AnalyticData.Analytic() { Count = 0, Timestamp = DateTime.Now.Ticks });
-
-            messageReceivedAnalytic.Count++;
-            guildData.Analytics.UsersLeft[guildData.Analytics.UsersLeft.Count - 1] = messageReceivedAnalytic;
+            userLeftAnalytic.Count++;
+            guildData.Analytics.UsersLeft[guildData.Analytics.UsersLeft.Count - 1] = userLeftAnalytic;
             Console.Write(guildData.Analytics.UsersLeft.Last().Count);
-            Database.UpdateAnalytics(guildData.Analytics, guild);
+            Database.UpdateAnalytics(guildData.Analytics, arg.Guild);
         }
 
         private async Task UserJoined(SocketGuildUser arg)
         {
-            var guild = arg.Guild;
+            var guildData = Database.GetGuildData(arg.Guild);
+            if (guildData == null) return;
 
-            var guildData = Database.GetGuildData(guild);
+            if (guildData.Analytics.UsersJoined.Count < 1) guildData.Analytics.UsersJoined.Add(new AnalyticData.Analytic());
 
-            if (guildData.Analytics.UsersJoined.Count < 1)
-                guildData.Analytics.UsersJoined.Add(new Constants.AnalyticData.Analytic() { Count = 0, Timestamp = DateTime.Now.Ticks });
+            //Get unix timestamp analytic
+            var usersJoinedAnalytic = guildData.Analytics.UsersJoined.Last();
 
-            var messageReceivedAnalytic = guildData.Analytics.UsersJoined.Last();
+            usersJoinedAnalytic.Count++;
+            guildData.Analytics.UsersJoined[guildData.Analytics.UsersJoined.Count - 1] = usersJoinedAnalytic;
 
-            if (DateTime.Now.Subtract(new DateTime(messageReceivedAnalytic.Timestamp)).TotalHours > 24)
-                guildData.Analytics.UsersJoined.Add(new Constants.AnalyticData.Analytic() { Count = 0, Timestamp = DateTime.Now.Ticks });
-
-            messageReceivedAnalytic.Count++;
-            guildData.Analytics.UsersJoined[guildData.Analytics.UsersJoined.Count - 1] = messageReceivedAnalytic;
-
-            Database.UpdateAnalytics(guildData.Analytics, guild);
+            Database.UpdateAnalytics(guildData.Analytics, arg.Guild);
         }
 
         private async Task MessageDeleted(Cacheable<IMessage, ulong> arg1, ISocketMessageChannel arg2)
         {
+            //If message isn't from a guild, don't count it.
             if (arg2 is IDMChannel) return;
+            IGuild guild = (arg2 as IGuildChannel).Guild;
 
-            var guild = (arg2 as IGuildChannel).Guild;
+            GuildData guildData = Database.GetGuildData(guild);
+            if (guildData == null) return;
 
-            var guildData = Database.GetGuildData(guild);
+            if (guildData.Analytics.MessagesDeleted.Count < 1) guildData.Analytics.MessagesDeleted.Add(new AnalyticData.Analytic());
 
-            if (guildData.Analytics.MessagesDeleted.Count < 1)
-                guildData.Analytics.MessagesDeleted.Add(new Constants.AnalyticData.Analytic() { Count = 0, Timestamp = DateTime.Now.Ticks });
+            //Get unix timestamp analytic
+            var messageDeletedAnalytic = guildData.Analytics.MessagesDeleted.Last();
 
-            var messageReceivedAnalytic = guildData.Analytics.MessagesDeleted.Last();
-
-            if (DateTime.Now.Subtract(new DateTime(messageReceivedAnalytic.Timestamp)).TotalHours > 24)
-                guildData.Analytics.MessagesDeleted.Add(new Constants.AnalyticData.Analytic() { Count = 0, Timestamp = DateTime.Now.Ticks });
-
-            messageReceivedAnalytic.Count++;
-            guildData.Analytics.MessagesDeleted[guildData.Analytics.MessagesDeleted.Count - 1] = messageReceivedAnalytic;
+            messageDeletedAnalytic.Count++;
+            guildData.Analytics.MessagesDeleted[guildData.Analytics.MessagesDeleted.Count - 1] = messageDeletedAnalytic;
 
             Database.UpdateAnalytics(guildData.Analytics, guild);
         }
 
         private async Task MessageReceived(SocketMessage arg)
         {
+            //If message isn't from a guild, don't count it.
             if (arg.Channel is IDMChannel) return;
+            IGuild guild = (arg.Channel as IGuildChannel).Guild;
 
-            var guild = (arg.Channel as IGuildChannel).Guild;
+            GuildData guildData = Database.GetGuildData(guild);
+            if (guildData == null) return;
 
-            var guildData = Database.GetGuildData(guild);
+            if (guildData.Analytics.MessagesReceived.Count < 1) guildData.Analytics.MessagesReceived.Add(new AnalyticData.Analytic());
 
-            if(guildData.Analytics.MessagesReceived.Count < 1)
-                guildData.Analytics.MessagesReceived.Add(new Constants.AnalyticData.Analytic() { Count = 0, Timestamp = DateTime.Now.Ticks });
-
+            //Get unix timestamp analytic
             var messageReceivedAnalytic = guildData.Analytics.MessagesReceived.Last();
-
-            if (DateTime.Now.Subtract(new DateTime(messageReceivedAnalytic.Timestamp)).TotalHours >= 24)
-                guildData.Analytics.MessagesReceived.Add(new Constants.AnalyticData.Analytic() { Count = 0, Timestamp = DateTime.Now.Ticks });
-
-            messageReceivedAnalytic = guildData.Analytics.MessagesReceived.Last();
 
             messageReceivedAnalytic.Count++;
             guildData.Analytics.MessagesReceived[guildData.Analytics.MessagesReceived.Count - 1] = messageReceivedAnalytic;
@@ -211,6 +219,14 @@ namespace DBot
                 Database.InsertNewGuild(guild);
                 await Database.UpdateGuildCommands(guild);
             }
+
+            //Start Database update loop
+            Thread worker = new Thread(new ThreadStart(Database.UpdateGuildInfoLoop));
+        }
+
+        public void UpdateGuildInfo(Database database)
+        {
+
         }
 
         public static int GetLatency()

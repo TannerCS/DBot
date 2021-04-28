@@ -12,7 +12,7 @@ namespace DBot.Constants
         public AnalyticData(IGuild guild)
         {
             int memberCount = (guild as SocketGuild).DownloadedMemberCount;
-            ApproximateMemberCount = memberCount;
+            ApproximateMemberCount = new List<Analytic>() { new Analytic() { Timestamp = DiscordBot.Database.GetCurrentUnixTimestamp(), Count = memberCount } };
             Name = guild.Name;
             PremiumSubscriptionCount = guild.PremiumSubscriptionCount;
         }
@@ -44,10 +44,10 @@ namespace DBot.Constants
         public List<Analytic> UsersLeft { get; set; }
 
         [BsonElement("approximate_member_count")]
-        public int ApproximateMemberCount { get; set; }
+        public List<Analytic> ApproximateMemberCount { get; set; }
 
         [BsonElement("approximate_presence_count")]
-        public int ApproximatePresenceCount { get; set; }
+        public List<Analytic> ApproximatePresenceCount { get; set; }
 
         [BsonElement("name")]
         public string Name { get; set; }
@@ -57,7 +57,13 @@ namespace DBot.Constants
 
         public class Analytic
         {
-            public long Timestamp { get; set; }
+            public Analytic()
+            {
+                Timestamp = DiscordBot.Database.GetCurrentUnixTimestamp();
+                Count = 0;
+            }
+
+            public double Timestamp { get; set; }
             public int Count { get; set; }
         }
     }

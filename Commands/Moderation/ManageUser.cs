@@ -10,7 +10,7 @@ namespace DBot.Commands.Moderation
     public class ManageUser : ModuleBase<SocketCommandContext>
     {
         [Command("kick"),
-         Summary("Kicks specified user. Usage: <prefix>kick <user:userid> \"(optional)reason\"")]
+         Summary("Kicks specified user. Usage: <prefix>kick <user:userid> \"(optional)reason\"")] 
         [RequireBotPermission(GuildPermission.KickMembers)]
         [RequireUserPermission(GuildPermission.KickMembers)]
         [RequireBotPermission(GuildPermission.SendMessages)]

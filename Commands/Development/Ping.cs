@@ -7,7 +7,7 @@ namespace DBot.Commands.Development
     public class Ping : ModuleBase<SocketCommandContext>
     {
         [Command("ping"),
-         Summary("Pings the bot. Usage: <prefix>ping")]
+            Summary("Pings the bot. Usage: <prefix>ping")]
         [RequireBotPermission(GuildPermission.SendMessages)]
         public async Task PingAsync()
         {

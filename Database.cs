@@ -7,6 +7,7 @@ using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DBot
@@ -17,6 +18,7 @@ namespace DBot
         private IMongoDatabase _Database;
         private IMongoCollection<BsonDocument> _GuildInformation;
         private DateTime _LastMemberUpdate = DateTime.Now;
+        private static DateTime _Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         public Database()
         {
@@ -138,9 +140,11 @@ namespace DBot
             
             guildData.Analytics = data;
 
-            if(DateTime.Now.Subtract(_LastMemberUpdate).TotalMinutes > 9)
+            if(DateTime.Now.Subtract(_LastMemberUpdate).TotalMinutes >= 10)
             {
-                guildData.Analytics.ApproximateMemberCount = (guild as SocketGuild).DownloadedMemberCount;
+                var approxMemberCountAnalytic = guildData.Analytics.ApproximateMemberCount.Last();
+                approxMemberCountAnalytic.Count = (guild as SocketGuild).DownloadedMemberCount;
+                guildData.Analytics.ApproximateMemberCount[guildData.Analytics.ApproximateMemberCount.Count - 1] = approxMemberCountAnalytic;
                 _LastMemberUpdate = DateTime.Now;
             }
 
@@ -188,13 +192,12 @@ namespace DBot
         public GuildData GetGuildData(IGuild guild)
         {
             var filter = Builders<BsonDocument>.Filter.Eq("guild_id", guild.Id.ToString());
-            var guildData = _GuildInformation.Find(filter).FirstOrDefault();
+            BsonDocument guildData = _GuildInformation.Find(filter).FirstOrDefault();
 
             if (guildData == null)
                 return null;
 
             var parsedGuildData = BsonSerializer.Deserialize<GuildData>(guildData);
-
             return parsedGuildData;
         }
 
@@ -211,6 +214,70 @@ namespace DBot
             var set = Builders<BsonDocument>.Update.Set("prefix", prefix);
 
             _GuildInformation.UpdateOne(Builders<BsonDocument>.Filter.Eq("guild_id", guild.Id.ToString()), set);
+        }
+
+        public double GetCurrentUnixTimestamp()
+        {
+            var unixDateTime = (DateTime.Now.ToUniversalTime() - _Epoch).TotalSeconds;
+            return unixDateTime;
+        }
+
+        public DateTime GetCurrentDateFromUnixTimestamp(double unixTimestamp)
+        {
+            var timeSpan = TimeSpan.FromSeconds(unixTimestamp);
+            var localDateTime = _Epoch.Add(timeSpan).ToLocalTime();
+            return localDateTime;
+        }
+
+        public async void UpdateGuildInfoLoop()
+        {
+            while (true)
+            {
+                var guildInfo = await _GuildInformation.Find(Builders<BsonDocument>.Filter.Empty).ToListAsync();
+                foreach (var guild in guildInfo)
+                {
+                    //Convert to readable
+                    var guildData = BsonSerializer.Deserialize<GuildData>(guild);
+
+                    //Get unix timestamp analytic and convert
+                    var messageDeletedAnalytic = guildData.Analytics.MessagesDeleted.Last();
+                    var totalHrs = DateTime.Now.Subtract(GetCurrentDateFromUnixTimestamp(messageDeletedAnalytic.Timestamp)).TotalHours;
+                    if (totalHrs >= 24) guildData.Analytics.MessagesDeleted.Add(new AnalyticData.Analytic());
+
+                    var messageReceivedAnalytic = guildData.Analytics.MessagesReceived.Last();
+                    totalHrs = DateTime.Now.Subtract(GetCurrentDateFromUnixTimestamp(messageReceivedAnalytic.Timestamp)).TotalHours;
+                    if (totalHrs >= 24) guildData.Analytics.MessagesReceived.Add(new AnalyticData.Analytic());
+
+                    var usersJoinedAnalytic = guildData.Analytics.UsersJoined.Last();
+                    totalHrs = DateTime.Now.Subtract(GetCurrentDateFromUnixTimestamp(usersJoinedAnalytic.Timestamp)).TotalHours;
+                    if (totalHrs >= 24) guildData.Analytics.UsersJoined.Add(new AnalyticData.Analytic());
+
+                    var usersLeftAnalytic = guildData.Analytics.UsersLeft.Last();
+                    totalHrs = DateTime.Now.Subtract(GetCurrentDateFromUnixTimestamp(usersLeftAnalytic.Timestamp)).TotalHours;
+                    if (totalHrs >= 24) guildData.Analytics.UsersLeft.Add(new AnalyticData.Analytic());
+
+                    var usersBannedAnalytic = guildData.Analytics.UsersBanned.Last();
+                    totalHrs = DateTime.Now.Subtract(GetCurrentDateFromUnixTimestamp(usersBannedAnalytic.Timestamp)).TotalHours;
+                    if (totalHrs >= 24) guildData.Analytics.UsersBanned.Add(new AnalyticData.Analytic());
+
+                    var usersUnbannedAnalytic = guildData.Analytics.UsersUnbanned.Last();
+                    totalHrs = DateTime.Now.Subtract(GetCurrentDateFromUnixTimestamp(usersUnbannedAnalytic.Timestamp)).TotalHours;
+                    if (totalHrs >= 24) guildData.Analytics.UsersUnbanned.Add(new AnalyticData.Analytic());
+
+                    var invitesCreatedAnalytic = guildData.Analytics.InvitesCreated.Last();
+                    totalHrs = DateTime.Now.Subtract(GetCurrentDateFromUnixTimestamp(invitesCreatedAnalytic.Timestamp)).TotalHours;
+                    if (totalHrs >= 24) guildData.Analytics.InvitesCreated.Add(new AnalyticData.Analytic());
+
+                    var invitesDeletedAnalytic = guildData.Analytics.InvitesDeleted.Last();
+                    totalHrs = DateTime.Now.Subtract(GetCurrentDateFromUnixTimestamp(invitesDeletedAnalytic.Timestamp)).TotalHours;
+                    if (totalHrs >= 24) guildData.Analytics.InvitesDeleted.Add(new AnalyticData.Analytic());
+
+                    var approximateMemberAnalytic = guildData.Analytics.ApproximateMemberCount.Last();
+                    totalHrs = DateTime.Now.Subtract(GetCurrentDateFromUnixTimestamp(approximateMemberAnalytic.Timestamp)).TotalHours;
+                    if (totalHrs >= 24) guildData.Analytics.ApproximateMemberCount.Add(new AnalyticData.Analytic());
+                }
+                Thread.Sleep(60000);
+            }
         }
     }
 }
