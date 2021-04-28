@@ -17,6 +17,7 @@ namespace DBot
         private MongoClient _DBClient;
         private IMongoDatabase _Database;
         private IMongoCollection<BsonDocument> _GuildInformation;
+        private IMongoCollection<BsonDocument> _LatencyInformation;
         private DateTime _LastMemberUpdate = DateTime.Now;
         private static DateTime _Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
@@ -25,6 +26,7 @@ namespace DBot
             _DBClient = new MongoClient(DiscordBot.Config.Data.mongoUrl);
 
             _Database = _DBClient.GetDatabase("discord-bot");
+            _LatencyInformation = _Database.GetCollection<BsonDocument>("bot-latency");
             _GuildInformation = _Database.GetCollection<BsonDocument>("guild-information");
         }
 
@@ -94,42 +96,42 @@ namespace DBot
                 InvitesCreated = new List<AnalyticData.Analytic> { new AnalyticData.Analytic()
                 {
                     Count = 0,
-                    Timestamp = DateTime.Now.Ticks
+                    Timestamp = GetCurrentUnixTimestampStatic()
                 } },
                 InvitesDeleted = new List<AnalyticData.Analytic> { new AnalyticData.Analytic()
                 {
                     Count = 0,
-                    Timestamp = DateTime.Now.Ticks
+                    Timestamp = GetCurrentUnixTimestampStatic()
                 } },
                 MessagesDeleted = new List<AnalyticData.Analytic> { new AnalyticData.Analytic()
                 {
                     Count = 0,
-                    Timestamp = DateTime.Now.Ticks
+                    Timestamp = GetCurrentUnixTimestampStatic()
                 } },
                 MessagesReceived = new List<AnalyticData.Analytic> { new AnalyticData.Analytic()
                 {
                     Count = 0,
-                    Timestamp = DateTime.Now.Ticks
+                    Timestamp = GetCurrentUnixTimestampStatic()
                 } },
                 UsersBanned = new List<AnalyticData.Analytic> { new AnalyticData.Analytic()
                 {
                     Count = 0,
-                    Timestamp = DateTime.Now.Ticks
+                    Timestamp = GetCurrentUnixTimestampStatic()
                 } },
                 UsersJoined = new List<AnalyticData.Analytic> { new AnalyticData.Analytic()
                 {
                     Count = 0,
-                    Timestamp = DateTime.Now.Ticks
+                    Timestamp = GetCurrentUnixTimestampStatic()
                 } },
                 UsersLeft = new List<AnalyticData.Analytic> { new AnalyticData.Analytic()
                 {
                     Count = 0,
-                    Timestamp = DateTime.Now.Ticks
+                    Timestamp = GetCurrentUnixTimestampStatic()
                 } },
                 UsersUnbanned = new List<AnalyticData.Analytic> { new AnalyticData.Analytic()
                 {
                     Count = 0,
-                    Timestamp = DateTime.Now.Ticks
+                    Timestamp = GetCurrentUnixTimestampStatic()
                 } }
             };
         }
@@ -189,6 +191,11 @@ namespace DBot
             _GuildInformation.UpdateOne(Builders<BsonDocument>.Filter.Eq("guild_id", guild.Id.ToString()), set);
         }
 
+        public async Task UpdateLatency(int latency)
+        {
+            _LatencyInformation.InsertOne(new AnalyticData.Analytic() { Count = latency }.ToBsonDocument());
+        }
+
         public GuildData GetGuildData(IGuild guild)
         {
             var filter = Builders<BsonDocument>.Filter.Eq("guild_id", guild.Id.ToString());
@@ -217,6 +224,12 @@ namespace DBot
         }
 
         public double GetCurrentUnixTimestamp()
+        {
+            var unixDateTime = (DateTime.Now.ToUniversalTime() - _Epoch).TotalSeconds;
+            return unixDateTime;
+        }
+
+        public static double GetCurrentUnixTimestampStatic()
         {
             var unixDateTime = (DateTime.Now.ToUniversalTime() - _Epoch).TotalSeconds;
             return unixDateTime;

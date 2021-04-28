@@ -49,7 +49,7 @@ namespace DBot
             _Client.UserUnbanned += UserUnbanned;
             _Client.InviteCreated += InviteCreated;
             _Client.InviteDeleted += InviteDeleted;
-            //_Client.LatencyUpdated += LatencyUpdated;
+            _Client.LatencyUpdated += LatencyUpdated;
 
 
             await _Command.InstallCommandsAsync();
@@ -61,6 +61,11 @@ namespace DBot
 
             // Block this task until the program is closed.
             await Task.Delay(-1);
+        }
+
+        private async Task LatencyUpdated(int arg1, int arg2)
+        {
+            await Database.UpdateLatency(arg2);
         }
 
         private async Task InviteDeleted(SocketGuildChannel arg1, string arg2)

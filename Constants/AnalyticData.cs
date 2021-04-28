@@ -12,7 +12,8 @@ namespace DBot.Constants
         public AnalyticData(IGuild guild)
         {
             int memberCount = (guild as SocketGuild).DownloadedMemberCount;
-            ApproximateMemberCount = new List<Analytic>() { new Analytic() { Timestamp = DiscordBot.Database.GetCurrentUnixTimestamp(), Count = memberCount } };
+            double timestamp = DiscordBot.Database.GetCurrentUnixTimestamp();
+            ApproximateMemberCount = new List<Analytic>() { new Analytic() { Timestamp = timestamp, Count = memberCount } };
             Name = guild.Name;
             PremiumSubscriptionCount = guild.PremiumSubscriptionCount;
         }
