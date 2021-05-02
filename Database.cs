@@ -247,10 +247,13 @@ namespace DBot
             while (true)
             {
                 var guildInfo = await _GuildInformation.Find(Builders<BsonDocument>.Filter.Empty).ToListAsync();
+                var listWrites = new List<WriteModel<BsonDocument>>();
                 foreach (var guild in guildInfo)
                 {
                     //Convert to readable
                     var guildData = BsonSerializer.Deserialize<GuildData>(guild);
+                    //UpdateDefinition<BsonDocument> updateInfo;
+                    //int index = guildInfo.IndexOf(guild);
 
                     //Get unix timestamp analytic and convert
                     var messageDeletedAnalytic = guildData.Analytics.MessagesDeleted.Last();
@@ -288,7 +291,17 @@ namespace DBot
                     var approximateMemberAnalytic = guildData.Analytics.ApproximateMemberCount.Last();
                     totalHrs = DateTime.Now.Subtract(GetCurrentDateFromUnixTimestamp(approximateMemberAnalytic.Timestamp)).TotalHours;
                     if (totalHrs >= 24) guildData.Analytics.ApproximateMemberCount.Add(new AnalyticData.Analytic());
+
+                    //guildInfo[index] = guildData.ToBsonDocument();
+                    var set = Builders<BsonDocument>.Update.Set("analytics", guildData.Analytics);
+                    var filter = Builders<BsonDocument>.Filter.Eq("guild_id", guildData.guildID.ToString());
+                    //await _GuildInformation.UpdateOneAsync(filter, set);
+                    listWrites.Add(new UpdateOneModel<BsonDocument>(filter, set));
                 }
+
+                await _GuildInformation.BulkWriteAsync(listWrites);
+
+                Console.WriteLine($"Updated database info.");
                 Thread.Sleep(60000);
             }
         }

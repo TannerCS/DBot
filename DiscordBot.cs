@@ -227,6 +227,7 @@ namespace DBot
 
             //Start Database update loop
             Thread worker = new Thread(new ThreadStart(Database.UpdateGuildInfoLoop));
+            worker.Start();
         }
 
         public void UpdateGuildInfo(Database database)
