@@ -301,8 +301,8 @@ namespace DBot
 
                 await _GuildInformation.BulkWriteAsync(listWrites);
 
-                Console.WriteLine($"Updated database info.");
-                Thread.Sleep(60000);
+                await DiscordBot.Logger.LogAsync(new LogMessage(LogSeverity.Verbose, "Database", "Updated analytic info"));
+                Thread.Sleep(120000);
             }
         }
     }

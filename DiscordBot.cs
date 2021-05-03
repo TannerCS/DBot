@@ -50,6 +50,7 @@ namespace DBot
             _Client.InviteCreated += InviteCreated;
             _Client.InviteDeleted += InviteDeleted;
             _Client.LatencyUpdated += LatencyUpdated;
+            _Client.Log += Log;
 
 
             await _Command.InstallCommandsAsync();
@@ -61,6 +62,11 @@ namespace DBot
 
             // Block this task until the program is closed.
             await Task.Delay(-1);
+        }
+
+        private async Task Log(LogMessage arg)
+        {
+            //Logger.Log(new LogMessage(LogSeverity.Error, ))
         }
 
         private async Task LatencyUpdated(int arg1, int arg2)
